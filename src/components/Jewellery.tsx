@@ -2,36 +2,30 @@ import React, { useEffect, useRef, useState } from "react";
 import { Camera } from "@mediapipe/camera_utils";
 import { startCamera } from "../utils/cam";
 import { buildFaceMeshes } from "../utils/buildMesh";
-import { drawLipstick } from "../utils/drawing/lipstickOverride/draw";
 import TryOnLayout from "./TryOnLayout";
 import Navbar from "./Navbar";
 
-const LIPSTICK_SHADES = [
-  { name: "Ruby Red", color: "#8d1810" },
-  { name: "Soft Pink", color: "#d67c8b" },
-  { name: "Deep Plum", color: "#4a1226" },
-  { name: "Coral Reef", color: "#e36e5c" },
-  { name: "Nude Peach", color: "#cca799" },
+const JEWELLERY_ITEMS = [
+  { name: "Gold Necklace", color: "#FFD700" },
+  { name: "Silver Choker", color: "#C0C0C0" },
+  { name: "Diamond Drop", color: "#E0F7FA" },
+  { name: "Ruby Pendant", color: "#E0115F" },
+  { name: "Emerald Studs", color: "#50C878" },
 ];
 
 const OTHER_CATEGORIES = [
-  { name: "Jewellery", path: "/jewellery" },
+  { name: "Lipstick", path: "/lipsticks" },
   { name: "Foundation", path: "/foundation-shades" },
   { name: "Blush", path: "/blush" },
 ];
 
-const Lipsticks: React.FC = () => {
+const Jewellery: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraRef = useRef<Camera | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [selectedShade, setSelectedShade] = useState(LIPSTICK_SHADES[0]);
-
-  const colorRef = useRef(selectedShade.color);
-  useEffect(() => {
-    colorRef.current = selectedShade.color;
-  }, [selectedShade]);
+  const [selectedItem, setSelectedItem] = useState(JEWELLERY_ITEMS[0]);
 
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -58,14 +52,15 @@ const Lipsticks: React.FC = () => {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      drawLipstick(results, canvas, ctx, colorRef.current);
+      
+      // TODO: Implement Jewellery specific drawing logic here
     };
 
     const faceMesh = buildFaceMeshes(
       canvasRef.current,
       videoRef.current,
       processResults,
-      (res, can, ctx) => drawLipstick(res, can, ctx, colorRef.current)
+      () => {} // Empty draw function for now
     );
 
     startCamera(videoRef.current, faceMesh, cameraRef, (err) => {
@@ -87,15 +82,17 @@ const Lipsticks: React.FC = () => {
     <>
       <Navbar />
       <TryOnLayout
-        titleText="Lipstick"
-        selectionTitle="Select Lipstick:"
-        items={LIPSTICK_SHADES}
-        selectedItem={selectedShade}
-        onSelectItem={setSelectedShade}
+        titleText="Jewellery"
+        selectionTitle="Select Jewellery:"
+        items={JEWELLERY_ITEMS}
+        selectedItem={selectedItem}
+        onSelectItem={setSelectedItem}
         otherCategories={OTHER_CATEGORIES}
-        renderItem={(shade, isSelected) => (
+        renderItem={(item, isSelected) => (
           <div className={`p-[2px] rounded-full border-2 ${isSelected ? 'border-custom-blue' : 'border-transparent hover:border-gray-300'}`}>
-             <div className="w-10 h-10 rounded-full shadow-inner border border-gray-100" style={{ backgroundColor: shade.color }} title={shade.name} />
+             <div className="w-10 h-10 rounded-full shadow-inner border border-gray-100 flex items-center justify-center font-bold text-[10px] text-center" style={{ backgroundColor: item.color }} title={item.name}>
+               {item.name.substring(0,2)}
+             </div>
           </div>
         )}
       >
@@ -118,4 +115,4 @@ const Lipsticks: React.FC = () => {
   );
 };
 
-export default Lipsticks;
+export default Jewellery;
