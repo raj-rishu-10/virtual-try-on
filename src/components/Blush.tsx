@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Camera } from "@mediapipe/camera_utils";
 import { startCamera } from "../utils/cam";
 import { buildFaceMeshes } from "../utils/buildMesh";
+import { drawBlush } from "../utils/drawing/blushOverride/draw";
 import TryOnLayout from "./TryOnLayout";
 import Navbar from "./Navbar";
 
@@ -26,6 +27,11 @@ const Blush: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [selectedShade, setSelectedShade] = useState(BLUSH_SHADES[0]);
+
+  const colorRef = useRef(selectedShade.color);
+  useEffect(() => {
+    colorRef.current = selectedShade.color;
+  }, [selectedShade]);
 
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -52,15 +58,14 @@ const Blush: React.FC = () => {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      
-      // TODO: Implement Blush specific drawing logic here using MediaPipe landmarks for cheeks
+      drawBlush(results, canvas, ctx, colorRef.current);
     };
 
     const faceMesh = buildFaceMeshes(
       canvasRef.current,
       videoRef.current,
       processResults,
-      () => {} // Empty draw function for now
+      (res, can, ctx) => drawBlush(res, can, ctx, colorRef.current)
     );
 
     startCamera(videoRef.current, faceMesh, cameraRef, (err) => {
