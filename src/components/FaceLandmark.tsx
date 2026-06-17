@@ -49,7 +49,9 @@ const FaceMesh: React.FC<FaceMeshProps> = ({ onResults }) => {
         height: 480,
       });
   
-      camera.start();
+      camera.start().catch((err) => {
+        console.error("Camera failed to start in FaceLandmark:", err);
+      });
       cameraRef.current = camera;
 
       return () => {

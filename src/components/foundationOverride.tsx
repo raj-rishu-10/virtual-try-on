@@ -6,6 +6,7 @@ import { drawFoundation } from "../utils/drawing/foundationOverride/draw";
 import logo from "../images/omnia_logo.png";
 import droplets from "../images/droplets.png";
 import productImage from "../images/soul_serum.png";
+import { Check, Info, Sparkles, BookOpen } from "lucide-react";
 
 interface FaceMeshProps {
   onResults?: (results: any) => void;
@@ -27,8 +28,13 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
   const dropletImageRef = useRef<HTMLImageElement | null>(null);
   const productImageRef = useRef<HTMLImageElement | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const onResultsRef = useRef(onResults);
+
+  useEffect(() => {
+    onResultsRef.current = onResults;
+  }, [onResults]);
 
   // Product information - enhanced with more details from Pure Mana Hawaii
   const productInfo = {
@@ -54,15 +60,7 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
     shopifyLink: "https://www.puremanahawaii.com/products/soul-serum",
   };
 
-  // Check if on mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+
 
   // Preload all images
   useEffect(() => {
@@ -257,7 +255,7 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
 
     const processResults = (results: { multiFaceLandmarks: any[][] }) => {
       resultsRef.current = results;
-      if (onResults) onResults(results);
+      if (onResultsRef.current) onResultsRef.current(results);
       drawSplitCanvas(results);
     };
 
@@ -274,12 +272,19 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
     );
 
     // Start camera
-    startCamera(videoRef.current, faceMesh, cameraRef);
+    const stopCamera = startCamera(videoRef.current, faceMesh, cameraRef, (err) => {
+      setCameraError(err.message || "Requested device not found");
+      setIsLoading(false);
+    });
 
+    const videoElement = videoRef.current;
     return () => {
-      if (videoRef.current)
-        videoRef.current.removeEventListener("loadedmetadata", handleMetadata);
-      if (cameraRef.current) cameraRef.current.stop();
+      if (videoElement) {
+        videoElement.removeEventListener("loadedmetadata", handleMetadata);
+      }
+      if (stopCamera) {
+        stopCamera();
+      }
     };
   }, []);
 
@@ -332,11 +337,11 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
   }, [videoLoaded]);
 
   return (
-    <div className="bg-white h-screen w-full py-4 md:py-6 lg:py-8 xl:py-10 2xl:py-12">
+    <div className="bg-white min-h-screen w-full py-4 md:py-6 lg:py-8 xl:py-10 2xl:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12 flex flex-col">
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10 w-full">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10 w-full items-stretch">
           {/* AR Card Section */}
-          <div className="w-full lg:w-3/5 bg-white/95 backdrop-blur-sm rounded-2xl h-1/2 shadow-lg overflow-hidden">
+          <div className="w-full lg:w-3/5 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden flex flex-col justify-between relative border border-stone-100">
             <div
               ref={canvasContainerRef}
               className="relative w-full"
@@ -345,30 +350,65 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
               <canvas
                 ref={canvasRef}
                 className="absolute inset-0"
-                // style={{ zIndex: 2 }}
                 style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
               />
-              <div
-                ref={sliderRef}
-                className="absolute top-0 bottom-0 w-8 z-10 cursor-ew-resize"
-                style={{
-                  left: `calc(${sliderPosition}% - 16px)`,
-                  touchAction: "none",
-                }}
-              />
+              {!cameraError && (
+                <div
+                  ref={sliderRef}
+                  className="absolute top-0 bottom-0 w-8 z-10 cursor-ew-resize"
+                  style={{
+                    left: `calc(${sliderPosition}% - 16px)`,
+                    touchAction: "none",
+                  }}
+                />
+              )}
               {(isLoading || !imagesLoaded) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl z-20">
                   <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-t-2 border-b-2 border-[#C09D7C]"></div>
                 </div>
               )}
-              <div className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-3 md:left-4 right-2 sm:right-3 md:right-4 flex justify-between z-20">
-                <div className="bg-black/70 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm md:text-base font-light tracking-wide">
-                  Before
+              {!cameraError && (
+                <div className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-3 md:left-4 right-2 sm:right-3 md:right-4 flex justify-between z-20">
+                  <div className="bg-black/70 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm md:text-base font-light tracking-wide">
+                    Before
+                  </div>
+                  <div className="bg-black/70 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm md:text-base font-light tracking-wide">
+                    After
+                  </div>
                 </div>
-                <div className="bg-black/70 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm md:text-base font-light tracking-wide">
-                  After
+              )}
+              {cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/95 backdrop-blur-md text-white p-8 text-center rounded-2xl z-30 transition-all duration-500">
+                  <div className="bg-amber-500/10 p-5 rounded-full mb-6 border border-amber-500/30 animate-pulse">
+                    <svg
+                      className="w-10 h-10 text-[#C09D7C]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-semibold tracking-wide text-amber-100 mb-3">Camera Access Needed</h3>
+                  <p className="text-sm text-stone-300 max-w-md mb-8 leading-relaxed">
+                    {cameraError === "Requested device not found" || cameraError.includes("device not found")
+                      ? "No camera device was detected on your system. Please connect a webcam or access this experience from a mobile device."
+                      : "We couldn't access your webcam. Please grant camera permission in your browser's address bar and close other apps using the camera."}
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-8 py-3 bg-[#C09D7C] hover:bg-[#a88463] text-stone-900 font-bold uppercase tracking-wider text-xs rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    Try Again
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Watermark overlay */}
@@ -395,6 +435,88 @@ const SoulSerumAR: React.FC<FaceMeshProps> = ({ onResults }) => {
               playsInline
               style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
             />
+          </div>
+
+          {/* Product Details Section */}
+          <div className="w-full lg:w-2/5 flex flex-col justify-between bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-stone-200/60 shadow-lg">
+            <div>
+              {/* Brand & Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold uppercase tracking-widest text-[#a88463]">Pure Mana Hawaii</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  <Sparkles className="w-3 h-3 mr-1" /> Best Seller
+                </span>
+              </div>
+
+              {/* Title & Subtitle */}
+              <h1 className="text-3xl font-extrabold text-stone-900 tracking-tight mb-1">
+                {productInfo.name}
+              </h1>
+              <p className="text-xs italic text-stone-500 mb-6">{productInfo.subtitle}</p>
+
+              {/* Price & Size */}
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-2xl font-bold text-stone-900">{productInfo.price}</span>
+                <span className="text-xs text-stone-400">/ {productInfo.size}</span>
+              </div>
+
+              {/* Description */}
+              <p className="text-sm text-stone-600 leading-relaxed mb-6">
+                {productInfo.description}
+              </p>
+
+              {/* Benefits */}
+              <div className="mb-6">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-3">Key Benefits</h3>
+                <ul className="space-y-2 text-sm text-stone-600">
+                  {productInfo.benefits.map((benefit, idx) => (
+                    <li key={idx} className="flex items-center">
+                      <Check className="w-4 h-4 text-emerald-600 mr-2 flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* tabs or accordion for How to Use / Ingredients */}
+              <div className="border-t border-stone-200 pt-6 mt-6 space-y-4">
+                <details className="group" open>
+                  <summary className="flex justify-between items-center font-semibold text-sm text-stone-800 cursor-pointer list-none">
+                    <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-[#a88463]" /> How To Use</span>
+                    <span className="transition group-open:rotate-180">
+                      <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                    </span>
+                  </summary>
+                  <p className="text-xs text-stone-500 mt-2 leading-relaxed pl-6">
+                    {productInfo.howToUse}
+                  </p>
+                </details>
+
+                <details className="group border-t border-stone-100 pt-3">
+                  <summary className="flex justify-between items-center font-semibold text-sm text-stone-800 cursor-pointer list-none">
+                    <span className="flex items-center gap-2"><Info className="w-4 h-4 text-[#a88463]" /> Ingredients</span>
+                    <span className="transition group-open:rotate-180">
+                      <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                    </span>
+                  </summary>
+                  <p className="text-xs text-stone-500 mt-2 leading-relaxed pl-6 max-h-24 overflow-y-auto">
+                    {productInfo.ingredients}
+                  </p>
+                </details>
+              </div>
+            </div>
+
+            {/* Shop Button */}
+            <div className="mt-8 border-t border-stone-200 pt-6">
+              <a
+                href={productInfo.shopifyLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 bg-[#C09D7C] hover:bg-[#a88463] text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-all duration-300 shadow-md flex items-center justify-center gap-2"
+              >
+                Buy on Pure Mana Hawaii
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -3,7 +3,8 @@ import React from "react";
 
 export const startCamera = (videoRef: HTMLVideoElement, 
   faceMesh: { send: (arg0: { image: HTMLVideoElement; }) => any; },
-  cameraRef: React.MutableRefObject<Camera | null>
+  cameraRef: React.MutableRefObject<Camera | null>,
+  onError?: (error: any) => void
 ) => {
 
     const camera = new Camera(videoRef, {
@@ -14,7 +15,20 @@ export const startCamera = (videoRef: HTMLVideoElement,
         height: 480,
       });
   
-      camera.start();
+      try {
+        camera.start().catch((error) => {
+          console.error("Camera failed to start:", error);
+          if (onError) {
+            onError(error);
+          }
+        });
+      } catch (error) {
+        console.error("Synchronous error during camera start:", error);
+        if (onError) {
+          onError(error);
+        }
+      }
+      
       cameraRef.current = camera;
 
       return () => {
