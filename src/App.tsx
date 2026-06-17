@@ -4,13 +4,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Landing from "./components/Landing";
 import SoulSerumAR from "./components/foundationOverride";
 import ComingSoon from "./components/ComingSoon";
+import Lipsticks from "./components/Lipsticks";
 function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-white">
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/lipsticks" element={<ComingSoon />} />
+          <Route path="/lipsticks" element={<Lipsticks />} />
           <Route path="/jewellery" element={<ComingSoon />} />
           <Route path="/foundation-shades" element={<SoulSerumAR />} />
           <Route path="/blush" element={<ComingSoon />} />
