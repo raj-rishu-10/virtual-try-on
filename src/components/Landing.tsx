@@ -1,11 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Navbar from "./Navbar";
-import modelImage from "../images/model.png";
-import lipstickImage from "../images/sec1.png";
-import jewelleryImage from "../images/sec2.png";
 import foundationImage from "../images/sec3.png";
-import blushImage from "../images/sec4.png";
 
 const Landing: React.FC = () => {
   return (

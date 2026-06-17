@@ -1,4 +1,3 @@
-import React from 'react';
 import {createMask} from "./createMask";
 import {applyFoundation} from "./applyFoundation"
 

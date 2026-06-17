@@ -1,5 +1,4 @@
   import { FaceMesh } from '@mediapipe/face_mesh';
-  import * as mpFaceMesh from '@mediapipe/face_mesh';
 
 
 let faceMeshInstance: FaceMesh | null = null;
