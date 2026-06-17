@@ -10,6 +10,7 @@ interface TryOnLayoutProps {
   renderItem: (item: any, isSelected: boolean) => React.ReactNode;
   children: React.ReactNode;
   otherCategories: { name: string; path: string; icon?: string }[];
+  showBeforeAfterBadges?: boolean;
 }
 
 const TryOnLayout: React.FC<TryOnLayoutProps> = ({
@@ -21,6 +22,7 @@ const TryOnLayout: React.FC<TryOnLayoutProps> = ({
   renderItem,
   children,
   otherCategories,
+  showBeforeAfterBadges = true,
 }) => {
   const navigate = useNavigate();
 
@@ -49,6 +51,12 @@ const TryOnLayout: React.FC<TryOnLayoutProps> = ({
           {/* Left: Camera View */}
           <div className="lg:w-[65%] relative p-4 lg:p-6 flex flex-col">
              <div className="w-full h-full rounded-2xl overflow-hidden relative bg-[#F3F4F6] flex items-center justify-center">
+               {showBeforeAfterBadges && (
+                 <div className="absolute top-4 left-4 right-4 flex justify-between z-20 pointer-events-none">
+                   <div className="bg-black/50 text-white px-3 py-1 rounded-md text-sm font-medium tracking-wide shadow-sm">Before</div>
+                   <div className="bg-black/50 text-white px-3 py-1 rounded-md text-sm font-medium tracking-wide shadow-sm">After</div>
+                 </div>
+               )}
                {children}
              </div>
           </div>
