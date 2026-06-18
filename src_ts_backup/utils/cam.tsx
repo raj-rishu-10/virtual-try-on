@@ -1,9 +1,11 @@
-import { Camera } from "@mediapipe/camera_utils";
+import * as cam_utils from "@mediapipe/camera_utils";
+import type { Camera as CameraType } from "@mediapipe/camera_utils";
+const Camera = cam_utils.Camera || (window as any).Camera;
 import React from "react";
 
 export const startCamera = (videoRef: HTMLVideoElement, 
   faceMesh: { send: (arg0: { image: HTMLVideoElement; }) => any; },
-  cameraRef: React.MutableRefObject<Camera | null>,
+  cameraRef: React.MutableRefObject<CameraType | null>,
   onError?: (error: any) => void
 ) => {
 
