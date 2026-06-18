@@ -1,4 +1,3 @@
-import "@mediapipe/camera_utils";
 const Camera = window.Camera;
 export const startCamera = (videoRef, faceMesh, cameraRef, onError) => {
     const camera = new Camera(videoRef, {

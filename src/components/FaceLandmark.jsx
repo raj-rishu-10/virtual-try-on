@@ -1,6 +1,5 @@
 // src/components/FaceMesh.tsx
 import React, { useEffect, useRef } from "react";
-import "@mediapipe/camera_utils";
 const Camera = window.Camera;
 import { getFaceMeshInstance } from "../utils/mediapipe";
 const FaceMesh = ({ onResults }) => {

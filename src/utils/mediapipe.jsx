@@ -1,4 +1,3 @@
-import "@mediapipe/face_mesh";
 const FaceMesh = window.FaceMesh;
 let faceMeshInstance = null;
 export const getFaceMeshInstance = (onResults) => {
